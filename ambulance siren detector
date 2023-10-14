@@ -1,0 +1,104 @@
+'''import wave
+import pyaudio
+import numpy as np
+obj = wave.open('sound\\ambulance siren detection sample 1.wav','r')
+sample_rate=obj.getframerate()
+frames=obj.getnframes()
+RATE=obj.getframerate()
+width = obj.getsampwidth()
+p=pyaudio.PyAudio()
+#duration=frames/float(rate)
+#print(duration,"s")
+chunk=2048
+data = obj.readframes(chunk)
+window = np.blackman(chunk)
+stream = p.open(format =
+                p.get_format_from_width(obj.getsampwidth()),
+                channels = obj.getnchannels(),
+                rate = RATE,
+                output = True)
+while len(data) == chunk*width:
+    stream.write(data)
+    indata = np.array(wave.struct.unpack("%dh"%(len(data)/width),\
+                                         data))*window
+    fftData=abs(np.fft.rfft(indata))**2
+    # find the maximum
+    which = fftData[1:].argmax() + 1
+    # use quadratic interpolation around the max
+    if which != len(fftData)-1:
+        y0,y1,y2 = np.log(fftData[which-1:which+2:])
+        x1 = (y2 - y0) * .5 / (2 * y1 - y2 - y0)
+        # find the frequency and output it
+        thefreq = (which+x1)*RATE/chunk
+    print(thefreq)
+#for i in range(0,rate):
+#    if i>=650 and i<=750:
+#        print("Ambulance is enroute!")
+obj.close()
+#for i in range(0,duration*100):
+#    if 
+
+# frequency range of ambulance sirens are usually from 650 to 750 Hz.
+chunk=2048
+wf = wave.open('sound\\ambulance siren detection sample 1.wav', 'rb')
+swidth = wf.getsampwidth()
+RATE = wf.getframerate()
+# use a Blackman window
+window = np.blackman(chunk)
+# open stream
+p = pyaudio.PyAudio()
+stream = p.open(format =
+                p.get_format_from_width(wf.getsampwidth()),
+                channels = wf.getnchannels(),
+                rate = RATE,
+                output = True)
+
+# read some data
+data = wf.readframes(chunk)
+# play stream and find the frequency of each chunk
+while len(data) == chunk*swidth:
+    # write data out to the audio stream
+    stream.write(data)
+    # unpack the data and times by the hamming window
+    indata = np.array(wave.struct.unpack("%dh"%(len(data)/swidth),\
+                                         data))*window
+    # Take the fft and square each value
+    fftData=abs(np.fft.rfft(indata))**2
+    # find the maximum
+    which = fftData[1:].argmax() + 1
+    # use quadratic interpolation around the max
+    if which != len(fftData)-1:
+        y0,y1,y2 = np.log(fftData[which-1:which+2:])
+        x1 = (y2 - y0) * .5 / (2 * y1 - y2 - y0)
+        # find the frequency and output it
+        thefreq = (which+x1)*RATE/chunk
+        print("The freq is", thefreq, "Hz.")
+    else:
+        thefreq = which*RATE/chunk
+        print("The freq is", thefreq, "Hz." )
+    # read some more data
+    data = wf.readframes(chunk)
+if data:
+    stream.write(data)
+stream.close()
+p.terminate()'''
+
+import wave
+import numpy as np
+wav_obj = wave.open('sound\\ambulance siren detection sample 1.wav', 'rb')
+sample_freq = wav_obj.getframerate()
+n_samples = wav_obj.getnframes()
+t_audio = n_samples/sample_freq
+n_channels = wav_obj.getnchannels()
+signal_wave = wav_obj.readframes(n_samples)
+signal_array = np.frombuffer(signal_wave, dtype=np.int16)
+l_channel = signal_array[0::2]
+r_channel = signal_array[1::2]
+for i in list(l_channel):
+    if i>=650 and i<=750:
+        print("Ambulance en route!")
+        break
+    if i not in range(650,751):
+        print("Ambulance not detected!")
+        break
+wav_obj.close()
